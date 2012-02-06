@@ -1,0 +1,36 @@
+ifndef LEVEL
+LEVEL= .
+endif
+
+# Verbosity level
+ifndef VERBOSE
+VERB := @
+endif
+
+ifndef PROJECT
+PROJECT=
+endif
+
+include $(LEVEL)/Makefile.config
+
+%.o: %.c
+	$(CC) -c $^ -I$(LEVEL)/utilities/ -o $@
+
+ifdef PROJECT
+$(PROJECT): $(PROJECT).o $(LEVEL)/utilities/polybench.o
+	$(CC) -o $@ $^
+
+clean:: $(PROJECT)
+	rm -f $(PROJECT).o $(PROJECT) $(PROJECT).bc $(PROJECT).pbc \
+              $(PROJECT).profile.out
+
+all:: $(PROJECT)
+endif
+
+ifdef DIRS
+# '::' Always executes the targets all&clean, which will allow # make to descend into the subdirectories.
+all clean::
+	$(VERB) for dir in ${DIRS}; do \
+	  ($(MAKE) -C $$dir $@ $(MFLAGS)) || exit 1; \
+	 done
+endif
